@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="module">
+      import { io } from "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.esm.min.js";
+      const socket = io();
+
+      const upEl = document.querySelector("#up");
+      upEl.addEventListener("click", function (event) {
+        event.preventDefault();
+        inputUp();
+      });
+
+      const rightEl = document.querySelector("#right");
+      rightEl.addEventListener("click", function (event) {
+        event.preventDefault();
+        inputRight();
+      });
+
+      const downEl = document.querySelector("#down");
+      downEl.addEventListener("click", function (event) {
+        event.preventDefault();
+        inputDown();
+      });
+
+      const leftEl = document.querySelector("#left");
+      leftEl.addEventListener("click", function (event) {
+        event.preventDefault();
+        inputLeft();
+      });
+
+      const enterEl = document.querySelector("#enter");
+      enterEl.addEventListener("click", function (event) {
+        event.preventDefault();
+        inputEnter();
+      });
+
+      // 0: Enter
+      // 1: Up
+      // 2: Right
+      // 3: Down
+      // 4: Left
+
+      function inputEnter() {
+        enterEl.classList.remove("anim-colorful");
+        void enterEl.offsetWidth;
+        enterEl.classList.add("anim-colorful");
+        socket.emit("input", 0);
+      }
+
+      function inputUp() {
+        upEl.classList.remove("anim-colorful");
+        void upEl.offsetWidth;
+        upEl.classList.add("anim-colorful");
+        console.log("input up");
+        socket.emit("input", 1);
+      }
+
+      function inputRight() {
+        rightEl.classList.remove("anim-colorful");
+        void rightEl.offsetWidth;
+        rightEl.classList.add("anim-colorful");
+        console.log("input right");
+        socket.emit("input", 2);
+      }
+
+      function inputDown() {
+        downEl.classList.remove("anim-colorful");
+        void downEl.offsetWidth;
+        downEl.classList.add("anim-colorful");
+        console.log("input down");
+        socket.emit("input", 3);
+      }
+
+      function inputLeft() {
+        leftEl.classList.remove("anim-colorful");
+        void leftEl.offsetWidth;
+        leftEl.classList.add("anim-colorful");
+        console.log("input left");
+        socket.emit("input", 4);
+      }
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        user-select: none;
+      }
+      ul {
+        display: grid;
+        grid-template-rows: repeat(3, 1fr);
+        height: 100%;
+        width: 100%;
+      }
+      ul li {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16vw;
+        line-height: 14vh;
+        margin: 3vw;
+        height: 90%;
+        width: 26vw;
+        padding: 0 4vh 1.5vh 4vh;
+        background-color: black;
+        color: white;
+        border-radius: 12px;
+      }
+      @keyframes colorful {
+        0% {
+          outline: 5px solid red;
+          color: red;
+        }
+        25% {
+          outline: 5px solid blue;
+          color: blue;
+        }
+        50% {
+          outline: 5px solid green;
+          color: green;
+        }
+        75% {
+          color: yellow;
+        }
+        100% {
+          color: red;
+        }
+      }
+      .anim-colorful {
+        animation: colorful 0.5s ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <ul>
+      <li>
+        <button id="up">↑</button>
+      </li>
+      <li>
+        <button id="left">←</button>
+        <button id="enter">𐄂</button>
+        <button id="right">→</button>
+      </li>
+      <li>
+        <button id="down">↓</button>
+      </li>
+    </ul>
+  </body>
+</html>

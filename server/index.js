@@ -9,10 +9,15 @@ const server = createServer(app);
 const io = new Server(server);
 
 io.on("connection", (socket) => {
-  console.log("new connection");
+  console.log("a client has connected");
 
   socket.on("disconnect", () => {
-    console.log("client disconnected");
+    console.log("a client has disconnected");
+  });
+
+  socket.on("input", (input) => {
+    console.log("input pressed:", input);
+    io.emit("input", input);
   });
 });
 
@@ -20,6 +25,10 @@ app.use(logger("dev"));
 
 app.get("/", (req, res) => {
   res.sendFile(process.cwd() + "/app/index.html");
+});
+
+app.get("/control", (req, res) => {
+  res.sendFile(process.cwd() + "/app/control.html");
 });
 
 server.listen(port, () => {

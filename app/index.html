@@ -8,25 +8,266 @@
       import { io } from "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.esm.min.js";
       const socket = io();
 
+      // 0: Enter
+      // 1: Up
+      // 2: Right
+      // 3: Down
+      // 4: Left
+
+      socket.on("input", (input) => {
+        console.log("input recibido:", input);
+        switch (input) {
+          case 0:
+            updateInput();
+            break;
+          case 1:
+            inputUp();
+            break;
+          case 2:
+            inputRight();
+            break;
+          case 3:
+            inputDown();
+            break;
+          case 4:
+            inputLeft();
+            break;
+          default:
+            break;
+        }
+      });
+
       let option = 1;
+      let letterIndex = 0;
+      let suggestIndex = 0;
+      const letter = [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "ñ",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+      ];
+      const suggest = ["Sugerencia 1", "Sugerencia 2", "Sugerencia 3"];
 
       // Option 0: Sugerencias
       // Option 1: Abecedario
       // Option 2: Espacio
       // Option 3: Borrar
 
-      function updateCursor(option) {
-        console.log(`Mover cursor a opción ${option}`);
+      const optionsEls = document.querySelectorAll(".input");
+
+      function updateCursor() {
+        optionsEls.forEach((el) => {
+          el.classList.remove("cursor");
+          const cursorEl = document.querySelector(`#option-${option}`);
+          cursorEl.classList.add("cursor");
+        });
       }
 
-      function updateSelection(direction) {
+      const option0El = document.querySelector("#option-0");
+
+      function updateSuggestion() {
+        const prevEl = option0El.querySelector(".prev");
+        const currEl = option0El.querySelector(".curr");
+        const nextEl = option0El.querySelector(".next");
+        const prev = suggest[suggestIndex - 1]
+          ? suggest[suggestIndex - 1]
+          : suggest[suggest.length - 1];
+        const curr = suggest[suggestIndex];
+        const next = suggest[suggestIndex + 1] ? suggest[suggestIndex + 1] : suggest[0];
+        prevEl.innerHTML = prev;
+        currEl.innerHTML = curr;
+        nextEl.innerHTML = next;
+      }
+
+      const option1El = document.querySelector("#option-1");
+
+      function updateLetter() {
+        const prevEl = option1El.querySelector(".prev");
+        const currEl = option1El.querySelector(".curr");
+        const nextEl = option1El.querySelector(".next");
+        const prev = letter[letterIndex - 1] ? letter[letterIndex - 1] : letter[letter.length - 1];
+        const curr = letter[letterIndex];
+        const next = letter[letterIndex + 1] ? letter[letterIndex + 1] : letter[0];
+        prevEl.innerHTML = prev;
+        currEl.innerHTML = curr;
+        nextEl.innerHTML = next;
+      }
+
+      function inputUp() {
+        option--;
+        if (option > 3) option = 0;
+        if (option < 0) option = 3;
+        updateCursor();
+      }
+
+      function inputDown() {
+        option++;
+        if (option > 3) option = 0;
+        if (option < 0) option = 3;
+        updateCursor();
+      }
+
+      function inputLeft() {
         if (option === 0) {
-          console.log(`Mover selección de sugerencias: ${direction}`);
+          const arrowLeftEl = option0El.querySelector(".arrow.left");
+          arrowLeftEl.classList.remove("anim-colorful");
+          void arrowLeftEl.offsetWidth;
+          arrowLeftEl.classList.add("anim-colorful");
+          suggestIndex--;
+          if (suggestIndex > suggest.length - 1) suggestIndex = 0;
+          if (suggestIndex < 0) suggestIndex = suggest.length - 1;
+          updateSuggestion();
         }
         if (option === 1) {
-          console.log(`Mover selección del abecedario: ${direction}`);
+          const arrowLeftEl = option1El.querySelector(".arrow.left");
+          arrowLeftEl.classList.remove("anim-colorful");
+          void arrowLeftEl.offsetWidth;
+          arrowLeftEl.classList.add("anim-colorful");
+          letterIndex--;
+          if (letterIndex > letter.length - 1) letterIndex = 0;
+          if (letterIndex < 0) letterIndex = letter.length - 1;
+          updateLetter();
         }
       }
+
+      function inputRight() {
+        if (option === 0) {
+          const arrowRightEl = option0El.querySelector(".arrow.right");
+          arrowRightEl.classList.remove("anim-colorful");
+          void arrowRightEl.offsetWidth;
+          arrowRightEl.classList.add("anim-colorful");
+          suggestIndex++;
+          if (suggestIndex > suggest.length - 1) suggestIndex = 0;
+          if (suggestIndex < 0) suggestIndex = suggest.length - 1;
+          updateSuggestion();
+        }
+        if (option === 1) {
+          const arrowRightEl = option1El.querySelector(".arrow.right");
+          arrowRightEl.classList.remove("anim-colorful");
+          void arrowRightEl.offsetWidth;
+          arrowRightEl.classList.add("anim-colorful");
+          letterIndex++;
+          if (letterIndex > letter.length - 1) letterIndex = 0;
+          if (letterIndex < 0) letterIndex = letter.length - 1;
+          updateLetter();
+        }
+      }
+
+      const inputEl = document.querySelector("#input");
+      const option2El = document.querySelector("#option-2");
+      const option3El = document.querySelector("#option-3");
+
+      function updateInput() {
+        if (option === 0) {
+          const currEl = option0El.querySelector(".curr");
+          currEl.classList.remove("anim-colorful");
+          void currEl.offsetWidth;
+          currEl.classList.add("anim-colorful");
+          const charSeparator =
+            inputEl.innerText.length === 0 ||
+            inputEl.innerText.charAt(inputEl.innerText.length - 1) === " "
+              ? ""
+              : " ";
+          inputEl.innerHTML += charSeparator + currEl.innerHTML + "&nbsp;";
+          updateSuggestionList();
+        }
+        if (option === 1) {
+          const currEl = option1El.querySelector(".curr");
+          currEl.classList.remove("anim-colorful");
+          void currEl.offsetWidth;
+          currEl.classList.add("anim-colorful");
+          inputEl.innerText += currEl.innerHTML;
+          updateSuggestionList(true);
+        }
+        if (option === 2) {
+          const spanEl = option2El.querySelector("span");
+          spanEl.classList.remove("anim-colorful");
+          void spanEl.offsetWidth;
+          spanEl.classList.add("anim-colorful");
+          inputEl.innerHTML += "&nbsp;";
+        }
+        if (option === 3) {
+          const spanEl = option3El.querySelector("span");
+          spanEl.classList.remove("anim-colorful");
+          void spanEl.offsetWidth;
+          spanEl.classList.add("anim-colorful");
+          const value = inputEl.innerText;
+          inputEl.innerText = value.slice(0, -1);
+        }
+        console.log(inputEl.innerText.length);
+        if (inputEl.innerText.length < 15) inputEl.style.fontSize = "9cqw";
+        if (inputEl.innerText.length > 14) inputEl.style.fontSize = "8cqw";
+        if (inputEl.innerText.length > 17) inputEl.style.fontSize = "7cqw";
+        if (inputEl.innerText.length > 24) inputEl.style.fontSize = "6cqw";
+        if (inputEl.innerText.length > 33) inputEl.style.fontSize = "5cqw";
+        if (inputEl.innerText.length > 43) inputEl.style.fontSize = "4cqw";
+        if (inputEl.innerText.length > 80) inputEl.style.fontSize = "3cqw";
+        if (inputEl.innerText.length > 168) inputEl.style.fontSize = "2cqw";
+      }
+
+      function updateSuggestionList(newWord = false) {
+        if (newWord) {
+          const word = getLastWord(inputEl.innerText);
+          console.log("adivinar nueva palabra:", word);
+        } else {
+          console.log("adivinar próxima palabra:", inputEl.innerText);
+        }
+        updateSuggestion();
+      }
+
+      function getLastWord(string) {
+        const words = string.trim().split(/\s+/);
+        return words.pop();
+      }
+
+      updateLetter();
+      updateSuggestion();
+
+      document.addEventListener("keydown", (event) => {
+        switch (event.key) {
+          case "ArrowUp":
+            inputUp();
+            break;
+          case "ArrowDown":
+            inputDown();
+            break;
+          case "ArrowLeft":
+            inputLeft();
+            break;
+          case "ArrowRight":
+            inputRight();
+            break;
+          case "Enter":
+            updateInput();
+            break;
+          default:
+            updateInput();
+            break;
+        }
+      });
     </script>
     <style>
       * {
@@ -38,17 +279,8 @@
       body {
         height: 100%;
         padding: 0.5%;
-      }
-      @keyframes blink {
-        0% {
-          opacity: 0.7;
-        }
-        50% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 0.7;
-        }
+        user-select: none;
+        color: rgb(40, 40, 40);
       }
       ul {
         display: grid;
@@ -63,33 +295,40 @@
         width: 100%;
         border: 1px solid #ddd;
         font-size: 8vh;
-        border-radius: 4px;
         text-indent: 40px;
       }
       .cursor {
-        background-color: blue;
         color: white;
-        animation: blink 1s infinite;
-        outline: 1px solid blue;
+        background-color: rgb(40, 40, 40);
+        animation: cursor 1s infinite;
+        transition: outline-color 1s ease-in-out;
+        outline: 5px solid #4361ee;
       }
       ul li.selection {
         justify-content: space-between;
         text-indent: 0;
       }
-      input {
+      ul li:first-child {
+        min-height: 20vh;
+      }
+      #input {
         width: 100%;
         height: 100%;
-        font-size: 14vh;
-        text-indent: 40px;
-        padding: 1% 0;
+        text-indent: 0;
+        font-size: 9cqw;
+        line-height: auto;
         text-transform: uppercase;
         outline: 1px solid blue;
-        border: 1px solid blue;
-        border-radius: 4px;
+        border: 2px solid blue;
         color: blue;
+        overflow: hidden;
+        padding: 0 1%;
+        text-align: center;
+        justify-content: center;
       }
       .abc {
-        font-size: 14vh;
+        font-size: 9cqw;
+        text-transform: uppercase;
       }
       .prev,
       .next {
@@ -104,27 +343,68 @@
       }
       .option {
       }
+      @keyframes cursor {
+        0% {
+          outline-color: red;
+        }
+        25% {
+          outline-color: blue;
+        }
+        50% {
+          outline-color: green;
+        }
+        75% {
+          outline-color: yellow;
+        }
+        100% {
+          outline-color: red;
+        }
+      }
+      @keyframes colorful {
+        0% {
+          color: red;
+        }
+        25% {
+          color: blue;
+        }
+        50% {
+          color: green;
+        }
+        75% {
+          color: yellow;
+        }
+        100% {
+          color: red;
+        }
+      }
+      .anim-colorful {
+        animation: colorful 0.5s ease-in-out;
+      }
     </style>
   </head>
   <body>
     <ul>
-      <li><input type="text" name="input" id="input" placeholder="Input" autofocus /></li>
-      <li class="selection">
+      <li id="input"></li>
+      <li id="option-0" class="input selection">
         <div class="arrow left">&lt;</div>
-        <div class="option prev">Sugerencia 1</div>
-        <div class="option curr">Sugerencia 2</div>
-        <div class="option next">Sugerencia 3</div>
+        <div class="option prev"></div>
+        <div class="option curr"></div>
+        <div class="option next"></div>
         <div class="arrow right">&gt;</div>
       </li>
-      <li class="selection abc cursor">
+      <li id="option-1" class="input selection abc cursor">
         <div class="arrow left">&lt;</div>
-        <div class="option prev">A</div>
-        <div class="option curr">B</div>
-        <div class="option next">C</div>
+        <div class="option prev"></div>
+        <div class="option curr"></div>
+        <div class="option next"></div>
         <div class="arrow right">&gt;</div>
       </li>
-      <li>Espacio</li>
-      <li>Borrar</li>
+      <li id="option-2" class="input">
+        <span>Espacio</span>
+      </li>
+      <li id="option-3" class="input">
+        <span>Borrar</span>
+      </li>
     </ul>
   </body>
 </html>
