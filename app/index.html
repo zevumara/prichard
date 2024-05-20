@@ -69,7 +69,7 @@
         "y",
         "z",
       ];
-      const suggest = ["Sugerencia 1", "Sugerencia 2", "Sugerencia 3"];
+      let suggest = [];
 
       // Option 0: Sugerencias
       // Option 1: Abecedario
@@ -92,14 +92,16 @@
         const prevEl = option0El.querySelector(".prev");
         const currEl = option0El.querySelector(".curr");
         const nextEl = option0El.querySelector(".next");
-        const prev = suggest[suggestIndex - 1]
-          ? suggest[suggestIndex - 1]
-          : suggest[suggest.length - 1];
-        const curr = suggest[suggestIndex];
-        const next = suggest[suggestIndex + 1] ? suggest[suggestIndex + 1] : suggest[0];
-        prevEl.innerHTML = prev;
-        currEl.innerHTML = curr;
-        nextEl.innerHTML = next;
+        if (suggest.length > 2) {
+          const prev = suggest[suggestIndex - 1]
+            ? suggest[suggestIndex - 1]
+            : suggest[suggest.length - 1];
+          const curr = suggest[suggestIndex];
+          const next = suggest[suggestIndex + 1] ? suggest[suggestIndex + 1] : suggest[0];
+          prevEl.innerHTML = prev;
+          currEl.innerHTML = curr;
+          nextEl.innerHTML = next;
+        }
       }
 
       const option1El = document.querySelector("#option-1");
@@ -120,6 +122,10 @@
         option--;
         if (option > 3) option = 0;
         if (option < 0) option = 3;
+        if (option === 0 && suggest.length === 0) {
+          option = 1;
+          return;
+        }
         updateCursor();
       }
 
@@ -127,6 +133,10 @@
         option++;
         if (option > 3) option = 0;
         if (option < 0) option = 3;
+        if (option === 0 && suggest.length === 0) {
+          option = 3;
+          return;
+        }
         updateCursor();
       }
 
@@ -191,7 +201,15 @@
             inputEl.innerText.charAt(inputEl.innerText.length - 1) === " "
               ? ""
               : " ";
-          inputEl.innerHTML += charSeparator + currEl.innerHTML + "&nbsp;";
+          const lastChar = inputEl.innerHTML.charAt(inputEl.innerHTML.length - 1);
+          if (lastChar != ";") {
+            // Replace last letters for suggested word
+            const lastWord = getLastWord(inputEl.innerText);
+            const newInput = inputEl.innerText.slice(0, -lastWord.length);
+            inputEl.innerHTML = newInput + currEl.innerHTML + "&nbsp;";
+          } else {
+            inputEl.innerHTML += charSeparator + currEl.innerHTML + "&nbsp;";
+          }
           updateSuggestionList();
         }
         if (option === 1) {
@@ -216,8 +234,8 @@
           spanEl.classList.add("anim-colorful");
           const value = inputEl.innerText;
           inputEl.innerText = value.slice(0, -1);
+          updateSuggestionList(true);
         }
-        console.log(inputEl.innerText.length);
         if (inputEl.innerText.length < 15) inputEl.style.fontSize = "9cqw";
         if (inputEl.innerText.length > 14) inputEl.style.fontSize = "8cqw";
         if (inputEl.innerText.length > 17) inputEl.style.fontSize = "7cqw";
@@ -228,14 +246,55 @@
         if (inputEl.innerText.length > 168) inputEl.style.fontSize = "2cqw";
       }
 
-      function updateSuggestionList(newWord = false) {
+      async function updateSuggestionList(newWord = false) {
+        if (!option0El.classList.contains("loading")) {
+          option0El.classList.add("loading");
+          option0El.classList.remove("cursor");
+          const currEl = option0El.querySelector(".curr");
+          currEl.innerHTML = "";
+        }
+        let prompt;
+        if (inputEl.innerText.length === 0) return;
         if (newWord) {
           const word = getLastWord(inputEl.innerText);
-          console.log("adivinar nueva palabra:", word);
+          const phrase = inputEl.innerText.replace(word, "");
+          if (phrase.length > 2) {
+            prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". La palabra empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero.`;
+          } else {
+            prompt = `Necesito que intentes adivinar la palabra que estoy escribiendo. Empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero.`;
+          }
         } else {
-          console.log("adivinar próxima palabra:", inputEl.innerText);
+          prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${inputEl.innerText}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero.`;
         }
-        updateSuggestion();
+        const result = await chatGPT(prompt);
+        suggest = result;
+        if (suggest.length > 0) {
+          option0El.classList.remove("loading");
+          if (option === 0) option0El.classList.add("cursor");
+          updateSuggestion();
+        }
+      }
+
+      async function chatGPT(prompt) {
+        try {
+          const response = await fetch("/suggestions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              prompt: prompt,
+            }),
+          });
+          const result = await response.json();
+          const lineas = result.suggestions.trim().split("\n");
+          const palabras = lineas.map((linea) => {
+            return linea.replace(/^\d+\.\s*/, "").trim();
+          });
+          return palabras;
+        } catch (error) {
+          return false;
+        }
       }
 
       function getLastWord(string) {
@@ -269,6 +328,12 @@
         }
       });
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+      rel="stylesheet"
+    />
     <style>
       * {
         margin: 0;
@@ -281,6 +346,7 @@
         padding: 0.5%;
         user-select: none;
         color: rgb(40, 40, 40);
+        font-family: "Roboto", sans-serif;
       }
       ul {
         display: grid;
@@ -339,9 +405,14 @@
         font-size: 14vh;
         padding: 0 2%;
       }
-      .arrow.left {
+      .loading {
+        color: white;
+        background-image: url(/loading.svg);
+        background-position: center;
+        background-repeat: no-repeat;
       }
-      .option {
+      #option-0 {
+        text-transform: uppercase;
       }
       @keyframes cursor {
         0% {
@@ -385,7 +456,7 @@
   <body>
     <ul>
       <li id="input"></li>
-      <li id="option-0" class="input selection">
+      <li id="option-0" class="input selection loading">
         <div class="arrow left">&lt;</div>
         <div class="option prev"></div>
         <div class="option curr"></div>
