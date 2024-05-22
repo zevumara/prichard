@@ -3,10 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Richard</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script type="module">
       import { io } from "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.esm.min.js";
       const socket = io();
+
+      socket.on("control", (control) => {
+        if (control) {
+          const messageConnectingEl = document.querySelector(".message.connecting");
+          messageConnectingEl.classList.add("hide");
+          const messageConnectedEl = document.querySelector(".message.connected");
+          messageConnectedEl.classList.remove("hide");
+          showConfetti();
+        }
+      });
+
+      const buttonStart = document.querySelector("button");
+      buttonStart.addEventListener("click", function () {
+        buttonStart.classList.remove("anim-colorful-outline");
+        void buttonStart.offsetWidth;
+        buttonStart.classList.add("anim-colorful-outline");
+        setTimeout(() => {
+          hideMessage();
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          }
+        }, 350);
+      });
+
+      function hideMessage() {
+        const waitingEl = document.querySelector("#waiting");
+        waitingEl.classList.add("hide");
+        const messageConnectingEl = document.querySelector(".message.connecting");
+        messageConnectingEl.classList.remove("hide");
+        const messageConnectedEl = document.querySelector(".message.connected");
+        messageConnectedEl.classList.add("hide");
+      }
+
+      function showConfetti() {
+        var end = Date.now() + 1 * 280;
+        (function frame() {
+          confetti({ particleCount: 4, angle: 60, spread: 45, origin: { x: 0 } });
+          confetti({ particleCount: 4, angle: 120, spread: 45, origin: { x: 1 } });
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        })();
+      }
 
       // 0: Enter
       // 1: Up
@@ -68,6 +112,7 @@
         "x",
         "y",
         "z",
+        "?",
       ];
       let suggest = [];
 
@@ -189,9 +234,11 @@
       const inputEl = document.querySelector("#input");
       const option2El = document.querySelector("#option-2");
       const option3El = document.querySelector("#option-3");
+      let deleteCount = 0;
 
       function updateInput() {
         if (option === 0) {
+          deleteCount = 0;
           const currEl = option0El.querySelector(".curr");
           currEl.classList.remove("anim-colorful");
           void currEl.offsetWidth;
@@ -210,9 +257,11 @@
           } else {
             inputEl.innerHTML += charSeparator + currEl.innerHTML + "&nbsp;";
           }
+          showConfetti();
           updateSuggestionList();
         }
         if (option === 1) {
+          deleteCount = 0;
           const currEl = option1El.querySelector(".curr");
           currEl.classList.remove("anim-colorful");
           void currEl.offsetWidth;
@@ -221,6 +270,7 @@
           updateSuggestionList(true);
         }
         if (option === 2) {
+          deleteCount = 0;
           const spanEl = option2El.querySelector("span");
           spanEl.classList.remove("anim-colorful");
           void spanEl.offsetWidth;
@@ -228,54 +278,66 @@
           inputEl.innerHTML += "&nbsp;";
         }
         if (option === 3) {
+          deleteCount++;
           const spanEl = option3El.querySelector("span");
           spanEl.classList.remove("anim-colorful");
           void spanEl.offsetWidth;
           spanEl.classList.add("anim-colorful");
           const value = inputEl.innerText;
           inputEl.innerText = value.slice(0, -1);
+          if (deleteCount > 6) {
+            inputEl.innerText = "";
+            deleteCount = 0;
+          }
           updateSuggestionList(true);
         }
         if (inputEl.innerText.length < 15) inputEl.style.fontSize = "9cqw";
         if (inputEl.innerText.length > 14) inputEl.style.fontSize = "8cqw";
-        if (inputEl.innerText.length > 17) inputEl.style.fontSize = "7cqw";
-        if (inputEl.innerText.length > 24) inputEl.style.fontSize = "6cqw";
-        if (inputEl.innerText.length > 33) inputEl.style.fontSize = "5cqw";
-        if (inputEl.innerText.length > 43) inputEl.style.fontSize = "4cqw";
-        if (inputEl.innerText.length > 80) inputEl.style.fontSize = "3cqw";
+        if (inputEl.innerText.length > 17) inputEl.style.fontSize = "6.5cqw";
+        if (inputEl.innerText.length > 24) inputEl.style.fontSize = "5.5cqw";
+        if (inputEl.innerText.length > 33) inputEl.style.fontSize = "4.5cqw";
+        if (inputEl.innerText.length > 43) inputEl.style.fontSize = "3.5cqw";
+        if (inputEl.innerText.length > 80) inputEl.style.fontSize = "2.5cqw";
         if (inputEl.innerText.length > 168) inputEl.style.fontSize = "2cqw";
       }
 
       async function updateSuggestionList(newWord = false) {
-        if (!option0El.classList.contains("loading")) {
-          option0El.classList.add("loading");
-          option0El.classList.remove("cursor");
-          const currEl = option0El.querySelector(".curr");
-          currEl.innerHTML = "";
-        }
-        let prompt;
+        //showSueggestionLoading();
+        let result;
         if (inputEl.innerText.length === 0) return;
+        const word = getLastWord(inputEl.innerText);
+        const phrase = inputEl.innerText.replace(word, "");
         if (newWord) {
-          const word = getLastWord(inputEl.innerText);
-          const phrase = inputEl.innerText.replace(word, "");
           if (phrase.length > 2) {
-            prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". La palabra empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero.`;
+            result = await getSuggestions(word, phrase);
           } else {
-            prompt = `Necesito que intentes adivinar la palabra que estoy escribiendo. Empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero.`;
+            result = await getSuggestions(word);
           }
         } else {
-          prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${inputEl.innerText}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero.`;
+          result = await getSuggestions(false, inputEl.innerText);
         }
-        const result = await chatGPT(prompt);
         suggest = result;
         if (suggest.length > 0) {
-          option0El.classList.remove("loading");
-          if (option === 0) option0El.classList.add("cursor");
+          hideSugesttionLoading();
           updateSuggestion();
         }
       }
 
-      async function chatGPT(prompt) {
+      function showSueggestionLoading() {
+        option0El.querySelector(".prev").innerHTML = "";
+        option0El.querySelector(".curr").innerHTML = "";
+        option0El.querySelector(".next").innerHTML = "";
+        option0El.classList.add("loading");
+        option0El.classList.remove("cursor");
+      }
+
+      function hideSugesttionLoading() {
+        option0El.classList.remove("loading");
+        if (option === 0) option0El.classList.add("cursor");
+      }
+
+      async function getSuggestions(word = false, phrase = false) {
+        let prompt;
         try {
           const response = await fetch("/suggestions", {
             method: "POST",
@@ -283,7 +345,8 @@
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              prompt: prompt,
+              word: word,
+              phrase: phrase,
             }),
           });
           const result = await response.json();
@@ -323,7 +386,6 @@
             updateInput();
             break;
           default:
-            updateInput();
             break;
         }
       });
@@ -359,14 +421,14 @@
         display: flex;
         align-items: center;
         width: 100%;
-        border: 1px solid #ddd;
+        border: 2px solid rgba(0, 0, 0, 0.3);
         font-size: 8vh;
         text-indent: 40px;
       }
       .cursor {
         color: white;
         background-color: rgb(40, 40, 40);
-        animation: cursor 1s infinite;
+        animation: all 1s infinite;
         transition: outline-color 1s ease-in-out;
         outline: 5px solid #4361ee;
       }
@@ -414,6 +476,50 @@
       #option-0 {
         text-transform: uppercase;
       }
+      #waiting {
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 99;
+      }
+      #waiting .message {
+        background-color: white;
+        padding: 60px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        text-align: center;
+      }
+      #waiting .message iframe {
+        margin-bottom: 40px;
+      }
+      #waiting .message p {
+        font-size: 3vw;
+        font-weight: bold;
+      }
+      #waiting button {
+        width: 100%;
+        padding: 40px;
+        margin-top: 40px;
+        font-size: 2vw;
+        font-family: "Roboto", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: black;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+      }
+      .hide {
+        display: none !important;
+      }
       @keyframes cursor {
         0% {
           outline-color: red;
@@ -449,11 +555,98 @@
         }
       }
       .anim-colorful {
-        animation: colorful 0.5s ease-in-out;
+        animation: squeeze 0.5s ease-in-out, colorful 0.5s ease-in-out;
+      }
+
+      @keyframes outline {
+        0% {
+          outline: 5px solid red;
+        }
+        25% {
+          outline: 5px solid blue;
+        }
+        50% {
+          outline: 5px solid green;
+        }
+        75% {
+          outline: 5px solid yellow;
+        }
+        100% {
+          outline: 5px solid red;
+        }
+      }
+      .anim-colorful-outline {
+        animation: squeeze 0.5s ease-in-out, colorful 0.5s ease-in-out, outline 0.5s ease-in-out;
+      }
+      @keyframes squeeze {
+        from {
+          transform: scale3d(1, 1, 1);
+        }
+
+        30% {
+          transform: scale3d(1.25, 0.75, 1);
+        }
+
+        40% {
+          transform: scale3d(0.75, 1.25, 1);
+        }
+
+        50% {
+          transform: scale3d(1.15, 0.85, 1);
+        }
+
+        65% {
+          transform: scale3d(0.95, 1.05, 1);
+        }
+
+        75% {
+          transform: scale3d(1.05, 0.95, 1);
+        }
+
+        to {
+          transform: scale3d(1, 1, 1);
+        }
+      }
+      .anim-squeeze {
+        animation: squeeze 0.5s ease-in-out;
+      }
+      @keyframes blink {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0.1;
+        }
+      }
+      .anim-blink {
+        animation-name: blink;
+        animation-duration: 0.6s;
+        animation-iteration-count: infinite;
+        animation-timing-function: ease-in-out;
+        animation-direction: alternate;
       }
     </style>
   </head>
   <body>
+    <div id="waiting">
+      <div class="message connecting">
+        <div class="gif">
+          <iframe
+            src="https://giphy.com/embed/3o7aTskHEUdgCQAXde"
+            width="480"
+            height="204"
+            frameborder="0"
+            class="giphy-embed"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <p class="anim-blink">Esperando conexión con control...</p>
+      </div>
+      <div class="message connected hide">
+        <p>¡Control conectado!</p>
+        <button>Iniciar</button>
+      </div>
+    </div>
     <ul>
       <li id="input"></li>
       <li id="option-0" class="input selection loading">

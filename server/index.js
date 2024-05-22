@@ -26,6 +26,11 @@ io.on("connection", (socket) => {
     console.log("input pressed:", input);
     io.emit("input", input);
   });
+
+  socket.on("control", (input) => {
+    console.log("a control has connected");
+    io.emit("control", 1);
+  });
 });
 
 app.use(logger("dev"));
@@ -45,16 +50,28 @@ app.get("/control", (req, res) => {
 app.use(express.json());
 
 app.post("/suggestions", async (req, res) => {
-  const { prompt } = req.body;
+  const { word, phrase } = req.body;
+  let prompt;
+  if (phrase && word) {
+    prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". La palabra empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
+  } else if (word) {
+    prompt = `Necesito que intentes adivinar la palabra que estoy escribiendo. Empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
+  } else if (phrase) {
+    prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
+  }
   try {
+    console.log("Consultando sugerencia a ChatGPT:", `"${prompt}"`);
     const chat_completion = await openai.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
       model: "gpt-3.5-turbo",
     });
-    res.json({ suggestions: chat_completion.choices[0].message.content });
+    const response = chat_completion.choices[0].message.content;
+    console.log("Respuesta de ChatGPT:");
+    console.log(response);
+    res.json({ suggestions: response });
   } catch (error) {
     res.status(500).json({ suggestions: error });
-    console.log("Error:", error);
+    console.log("Error en la conexión con ChatGPT:", error);
   }
 });
 

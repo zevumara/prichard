@@ -7,6 +7,7 @@
     <script type="module">
       import { io } from "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.esm.min.js";
       const socket = io();
+      socket.emit("control", 1);
 
       const upEl = document.querySelector("#up");
       upEl.addEventListener("click", function (event) {
@@ -135,14 +136,47 @@
           color: green;
         }
         75% {
+          outline: 5px solid yellow;
           color: yellow;
         }
         100% {
+          outline: 5px solid red;
           color: red;
         }
       }
       .anim-colorful {
-        animation: colorful 0.5s ease-in-out;
+        animation: squeeze 0.5s ease-in-out, colorful 0.5s ease-in-out;
+      }
+      @keyframes squeeze {
+        from {
+          transform: scale3d(1, 1, 1);
+        }
+        30% {
+          transform: scale3d(1.25, 0.75, 1);
+        }
+
+        40% {
+          transform: scale3d(0.75, 1.25, 1);
+        }
+
+        50% {
+          transform: scale3d(1.15, 0.85, 1);
+        }
+
+        65% {
+          transform: scale3d(0.95, 1.05, 1);
+        }
+
+        75% {
+          transform: scale3d(1.05, 0.95, 1);
+        }
+
+        to {
+          transform: scale3d(1, 1, 1);
+        }
+      }
+      .anim-squeeze {
+        animation: squeeze 0.5s ease-in-out;
       }
     </style>
   </head>
