@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Richard</title>
+    <title>Prichard</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script type="module">
       import { io } from "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.esm.min.js";
@@ -21,6 +22,8 @@
 
       const buttonStart = document.querySelector("button");
       buttonStart.addEventListener("click", function () {
+        const soundEl = document.querySelector("#audioConnected");
+        soundEl.play();
         buttonStart.classList.remove("anim-colorful-outline");
         void buttonStart.offsetWidth;
         buttonStart.classList.add("anim-colorful-outline");
@@ -58,22 +61,29 @@
       // 3: Down
       // 4: Left
 
+      const audioInputEl = document.querySelector("#audioInput");
+      const audioSuggestEl = document.querySelector("#audioSuggest");
       socket.on("input", (input) => {
         console.log("input recibido:", input);
         switch (input) {
           case 0:
+            audioSuggestEl.play();
             updateInput();
             break;
           case 1:
+            audioInputEl.play();
             inputUp();
             break;
           case 2:
+            audioInputEl.play();
             inputRight();
             break;
           case 3:
+            audioInputEl.play();
             inputDown();
             break;
           case 4:
+            audioInputEl.play();
             inputLeft();
             break;
           default:
@@ -628,6 +638,9 @@
     </style>
   </head>
   <body>
+    <audio id="audioInput" src="/input.ogg"></audio>
+    <audio id="audioConnected" src="/connected.ogg"></audio>
+    <audio id="audioSuggest" src="/suggest.ogg"></audio>
     <div id="waiting">
       <div class="message connecting">
         <div class="gif">
@@ -644,7 +657,7 @@
       </div>
       <div class="message connected hide">
         <p>¡Control conectado!</p>
-        <button>Iniciar</button>
+        <button>Presione aquí para iniciar</button>
       </div>
     </div>
     <ul>

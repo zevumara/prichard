@@ -43,6 +43,22 @@ app.get("/loading.svg", (req, res) => {
   res.sendFile(process.cwd() + "/app/loading.svg");
 });
 
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(process.cwd() + "/app/favicon.ico");
+});
+
+app.get("/input.ogg", (req, res) => {
+  res.sendFile(process.cwd() + "/app/input.ogg");
+});
+
+app.get("/connected.ogg", (req, res) => {
+  res.sendFile(process.cwd() + "/app/connected.ogg");
+});
+
+app.get("/suggest.ogg", (req, res) => {
+  res.sendFile(process.cwd() + "/app/suggest.ogg");
+});
+
 app.get("/control", (req, res) => {
   res.sendFile(process.cwd() + "/app/control.html");
 });
