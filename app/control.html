@@ -47,6 +47,7 @@
       // 4: Left
 
       function inputEnter() {
+        vibrate();
         enterEl.classList.remove("anim-colorful");
         void enterEl.offsetWidth;
         enterEl.classList.add("anim-colorful");
@@ -54,6 +55,7 @@
       }
 
       function inputUp() {
+        vibrate();
         upEl.classList.remove("anim-colorful");
         void upEl.offsetWidth;
         upEl.classList.add("anim-colorful");
@@ -62,6 +64,7 @@
       }
 
       function inputRight() {
+        vibrate();
         rightEl.classList.remove("anim-colorful");
         void rightEl.offsetWidth;
         rightEl.classList.add("anim-colorful");
@@ -70,6 +73,7 @@
       }
 
       function inputDown() {
+        vibrate();
         downEl.classList.remove("anim-colorful");
         void downEl.offsetWidth;
         downEl.classList.add("anim-colorful");
@@ -78,11 +82,18 @@
       }
 
       function inputLeft() {
+        vibrate();
         leftEl.classList.remove("anim-colorful");
         void leftEl.offsetWidth;
         leftEl.classList.add("anim-colorful");
         console.log("input left");
         socket.emit("input", 4);
+      }
+
+      function vibrate() {
+        if (navigator.vibrate) {
+          navigator.vibrate(60);
+        }
       }
     </script>
     <style>
