@@ -63,17 +63,21 @@ app.get("/control", (req, res) => {
   res.sendFile(process.cwd() + "/app/control.html");
 });
 
+app.get("/joystick", (req, res) => {
+  res.sendFile(process.cwd() + "/app/joystick.html");
+});
+
 app.use(express.json());
 
 app.post("/suggestions", async (req, res) => {
   const { word, phrase } = req.body;
   let prompt;
   if (phrase && word) {
-    prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". La palabra empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
+    prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". La palabra empieza con las siguientes letras: "${word}". Dame una lista de cinco posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
   } else if (word) {
-    prompt = `Necesito que intentes adivinar la palabra que estoy escribiendo. Empieza con las siguientes letras: "${word}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
+    prompt = `Necesito que intentes adivinar la palabra que estoy escribiendo. Empieza con las siguientes letras: "${word}". Dame una lista de cinco posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
   } else if (phrase) {
-    prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". Dame una lista de tres posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
+    prompt = `Necesito que intentes adivinar la próxima palabra de esta frase "${phrase}". Dame una lista de cinco posibles palabras y ordénalas en orden de probabilidad, las más probables primero. Solo palabras existentes en el idioma español. Respondé solo con el listado. Si encontrás respondé solo con el listado por orden númerico`;
   }
   try {
     console.log("Consultando sugerencia a ChatGPT:", `"${prompt}"`);

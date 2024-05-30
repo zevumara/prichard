@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prichard — Control</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <script type="module">
+      import { io } from "https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.esm.min.js";
+      const socket = io();
+      socket.emit("control", 1);
+
+      // 0: Enter
+      // 1: Up
+      // 2: Right
+      // 3: Down
+      // 4: Left
+
+      function inputEnter() {
+        vibrate();
+        console.log("input enter");
+        socket.emit("input", 0);
+      }
+
+      function inputUp() {
+        vibrate();
+        console.log("input up");
+        socket.emit("input", 1);
+      }
+
+      function inputRight() {
+        vibrate();
+        console.log("input right");
+        socket.emit("input", 2);
+      }
+
+      function inputDown() {
+        vibrate();
+        console.log("input down");
+        socket.emit("input", 3);
+      }
+
+      function inputLeft() {
+        vibrate();
+        console.log("input left");
+        socket.emit("input", 4);
+      }
+
+      function vibrate() {
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+      }
+
+      const draggable = document.getElementById("stick");
+
+      let startX, startY, initialX, initialY;
+      let currentX, currentY;
+      let choose = false;
+      let interval;
+      let lastTap = 0;
+      const doubleTapThreshold = 300;
+
+      draggable.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        stickOn();
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        initialX = draggable.offsetLeft;
+        initialY = draggable.offsetTop;
+      });
+
+      draggable.addEventListener("touchmove", function (e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        currentX = touch.clientX;
+        currentY = touch.clientY;
+        const moveX = currentX - startX;
+        const moveY = currentY - startY;
+        draggable.style.left = initialX + moveX + "px";
+        draggable.style.top = initialY + moveY + "px";
+        if (choose === true) return;
+        if (moveX > 60) {
+          choose = true;
+          inputRight();
+          interval = setInterval(inputRight, 350);
+          document.body.style.backgroundColor = "yellow";
+        } else if (moveX < -60) {
+          choose = true;
+          inputLeft();
+          interval = setInterval(inputLeft, 350);
+          document.body.style.backgroundColor = "blue";
+        } else if (moveY > 60) {
+          choose = true;
+          inputDown();
+          document.body.style.backgroundColor = "green";
+        } else if (moveY < -60) {
+          choose = true;
+          inputUp();
+          document.body.style.backgroundColor = "red";
+        }
+      });
+
+      draggable.addEventListener("touchend", function (e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        choose = false;
+        stickOff();
+        e.preventDefault();
+        clearInterval(interval);
+
+        if (!currentX && !currentY) {
+          inputEnter();
+        }
+
+        currentX = 0;
+        currentY = 0;
+
+        // if (tapLength < doubleTapThreshold && tapLength > 0) {
+        //   inputEnter();
+        // }
+
+        lastTap = currentTime;
+
+        draggable.style.left = initialX + "px";
+        draggable.style.top = initialY + "px";
+      });
+
+      function stickOn() {
+        document.body.style.backgroundColor = "black";
+      }
+      function stickOff() {
+        document.body.style.backgroundColor = "white";
+      }
+
+      const buttonStart = document.querySelector("button");
+      buttonStart.addEventListener("click", function () {
+        const soundEl = document.querySelector("#audioConnected");
+        soundEl.play();
+        setTimeout(() => {
+          vibrate();
+          const waitingEl = document.querySelector("#waiting");
+          waitingEl.classList.add("hide");
+        }, 350);
+      });
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        user-select: none;
+        font-family: "Roboto", sans-serif;
+      }
+      body.stickOn {
+        background-color: greenyellow;
+      }
+      .hide {
+        display: none !important;
+      }
+      #joystick {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        position: fixed;
+      }
+      .ball {
+        width: 40%;
+        aspect-ratio: 1 / 1;
+        height: auto;
+        border-radius: 100%;
+        touch-action: none;
+        position: absolute;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12vw;
+        line-height: 10vh;
+      }
+      #stick {
+        background-color: black;
+        z-index: 2;
+        color: white;
+        border: 2px solid white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+      #up {
+        background-color: red;
+        transform: translateY(-100%);
+      }
+      #down {
+        background-color: green;
+        transform: translateY(100%);
+      }
+      #left {
+        background-color: blue;
+        transform: translateX(-100%);
+      }
+      #right {
+        background-color: yellow;
+        transform: translateX(100%);
+      }
+      #waiting {
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 99;
+      }
+      #waiting .message {
+        text-align: center;
+      }
+      #waiting button {
+        width: 100%;
+        padding: 40px;
+        font-size: 5vw;
+        font-family: "Roboto", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: black;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="waiting">
+      <div class="message">
+        <button>Presione aquí para iniciar</button>
+      </div>
+    </div>
+    <audio id="audioInput" src="/input.ogg"></audio>
+    <audio id="audioConnected" src="/connected.ogg"></audio>
+    <audio id="audioSuggest" src="/suggest.ogg"></audio>
+    <div id="joystick">
+      <div id="stick" class="ball">𐄂</div>
+      <div id="up" class="ball">↑</div>
+      <div id="down" class="ball">↓</div>
+      <div id="left" class="ball">←</div>
+      <div id="right" class="ball">→</div>
+    </div>
+  </body>
+</html>

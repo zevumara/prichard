@@ -144,18 +144,26 @@
       const option0El = document.querySelector("#option-0");
 
       function updateSuggestion() {
+        const prev2El = option0El.querySelector(".prev2");
         const prevEl = option0El.querySelector(".prev");
         const currEl = option0El.querySelector(".curr");
         const nextEl = option0El.querySelector(".next");
+        const next2El = option0El.querySelector(".next2");
         if (suggest.length > 2) {
+          const prev2 = suggest[suggestIndex - 2]
+            ? suggest[suggestIndex - 2]
+            : suggest[suggest.length - 2];
           const prev = suggest[suggestIndex - 1]
             ? suggest[suggestIndex - 1]
             : suggest[suggest.length - 1];
           const curr = suggest[suggestIndex];
           const next = suggest[suggestIndex + 1] ? suggest[suggestIndex + 1] : suggest[0];
+          const next2 = suggest[suggestIndex + 2] ? suggest[suggestIndex + 2] : suggest[0];
+          prev2El.innerHTML = prev2;
           prevEl.innerHTML = prev;
           currEl.innerHTML = curr;
           nextEl.innerHTML = next;
+          next2El.innerHTML = next2;
         }
       }
 
@@ -334,9 +342,11 @@
       }
 
       function showSueggestionLoading() {
+        option0El.querySelector(".prev2").innerHTML = "";
         option0El.querySelector(".prev").innerHTML = "";
         option0El.querySelector(".curr").innerHTML = "";
         option0El.querySelector(".next").innerHTML = "";
+        option0El.querySelector(".next2").innerHTML = "";
         option0El.classList.add("loading");
         option0El.classList.remove("cursor");
       }
@@ -468,7 +478,15 @@
         font-size: 9cqw;
         text-transform: uppercase;
       }
+      #option-0 .prev2,
+      #option-0 .prev,
+      #option-0 .next2,
+      #option-0 .next {
+        opacity: 0.6;
+      }
+      .prev2,
       .prev,
+      .next2,
       .next {
         opacity: 0.4;
       }
@@ -485,6 +503,11 @@
       }
       #option-0 {
         text-transform: uppercase;
+        font-size: 4vh;
+      }
+      #option-0 .curr {
+        color: blue;
+        font-size: 6vh;
       }
       #waiting {
         position: fixed;
@@ -664,9 +687,11 @@
       <li id="input"></li>
       <li id="option-0" class="input selection loading">
         <div class="arrow left">&lt;</div>
+        <div class="option prev2">hola</div>
         <div class="option prev"></div>
         <div class="option curr"></div>
         <div class="option next"></div>
+        <div class="option next2">hola</div>
         <div class="arrow right">&gt;</div>
       </li>
       <li id="option-1" class="input selection abc cursor">
