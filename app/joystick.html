@@ -137,6 +137,9 @@
       buttonStart.addEventListener("click", function () {
         const soundEl = document.querySelector("#audioConnected");
         soundEl.play();
+        buttonStart.classList.remove("anim-colorful");
+        void buttonStart.offsetWidth;
+        buttonStart.classList.add("anim-colorful");
         setTimeout(() => {
           vibrate();
           const waitingEl = document.querySelector("#waiting");
@@ -225,25 +228,77 @@
         text-align: center;
       }
       #waiting button {
-        width: 100%;
-        padding: 40px;
-        font-size: 5vw;
-        font-family: "Roboto", sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 40%;
+        aspect-ratio: 1 / 1;
+        height: auto;
+        border-radius: 100%;
+        touch-action: none;
+        position: absolute;
+        z-index: 1;
+        font-size: 12vw;
+        line-height: 10vh;
         background-color: black;
         color: white;
-        border-radius: 12px;
-        cursor: pointer;
+      }
+
+      @keyframes colorful {
+        0% {
+          outline: 5px solid red;
+          color: red;
+        }
+        25% {
+          outline: 5px solid blue;
+          color: blue;
+        }
+        50% {
+          outline: 5px solid green;
+          color: green;
+        }
+        75% {
+          outline: 5px solid yellow;
+          color: yellow;
+        }
+        100% {
+          outline: 5px solid red;
+          color: red;
+        }
+      }
+      .anim-colorful {
+        animation: squeeze 0.5s ease-in-out, colorful 0.5s ease-in-out;
+      }
+      @keyframes squeeze {
+        from {
+          transform: scale3d(1, 1, 1);
+        }
+        30% {
+          transform: scale3d(1.25, 0.75, 1);
+        }
+
+        40% {
+          transform: scale3d(0.75, 1.25, 1);
+        }
+
+        50% {
+          transform: scale3d(1.15, 0.85, 1);
+        }
+
+        65% {
+          transform: scale3d(0.95, 1.05, 1);
+        }
+
+        75% {
+          transform: scale3d(1.05, 0.95, 1);
+        }
+
+        to {
+          transform: scale3d(1, 1, 1);
+        }
       }
     </style>
   </head>
   <body>
     <div id="waiting">
-      <div class="message">
-        <button>Presione aquí para iniciar</button>
-      </div>
+      <button>Iniciar</button>
     </div>
     <audio id="audioInput" src="/input.ogg"></audio>
     <audio id="audioConnected" src="/connected.ogg"></audio>
